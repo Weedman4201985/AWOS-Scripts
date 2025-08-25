@@ -13,14 +13,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Create ZIP of Working Copies
+    - name: Create ZIP of Zip Working Copies
       run: |
-        mkdir -p output
-        zip -r output/working-copies.zip "Working Copies"
+        if [ -d "Zip Working Copies" ]; then
+          mkdir -p output
+          zip -r output/zip-working-copies.zip "Zip Working Copies"
+        else
+          echo "Folder 'Zip Working Copies' not found"
+          exit 1
+        fi
 
     - name: Upload ZIP to Release
       uses: softprops/action-gh-release@v1
       with:
-        files: output/working-copies.zip
+        files: output/zip-working-copies.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
