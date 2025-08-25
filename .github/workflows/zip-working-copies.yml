@@ -1,0 +1,26 @@
+name: Zip Working Copies
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Create ZIP of Working Copies
+      run: |
+        mkdir -p output
+        zip -r output/working-copies.zip "Working Copies"
+
+    - name: Upload ZIP to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: output/working-copies.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
