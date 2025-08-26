@@ -39,7 +39,7 @@ These scripts run locally in your browser and inject functionality via DOM manip
 
 ### 🔹 Standard Installation (Recommended)
 
-1. 📥 Download the full [AWOS Scripts ZIP](https://github.com/Weedman4201985/AWOS-Scripts/archive/refs/heads/main.zip) from this repository.
+1. 📥 Download the full [AWOS Scripts ZIP](https://github.com/Weedman4201985/AWOS-Scripts/archive/refs/tags/v1.1.zip) from this repository.
 2. 🌐 Install [Violentmonkey for Firefox](https://violentmonkey.github.io/)
 
    _Alternatively, if Firefox isn’t your browser of choice:_  
@@ -63,11 +63,11 @@ These scripts run locally in your browser and inject functionality via DOM manip
 ### 🔸 Manual Script Import (Individual Files)
 
 1. Download each script manually:
-    - [CFWOS AWOS Cleanup Suite 2.0](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/CFWOS%20AWOS%20Cleanup%20Suite%202.0.user.js)
-    - [CFWOS AWOS Core 4.1](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/CFWOS%20AWOS%20Core%204.1.user.js)
-    - [CFWOS AWOS Layout Enhancer 2.0](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/CFWOS%20AWOS%20Layout%20Enhancer%202.0.user.js)
-    - [CFWOS AWOS Logger Utility](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/CFWOS%20AWOS%20Logger%20Utility.user.js)
-    - [AWOS Floating Panel 3.5.1 (CLD Detail styling)](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/AWOS%20Floating%20Panel%203.5.1%20(CLD%20Detail%20styling).user.js)
+    - [CFWOS AWOS Cleanup Suite 2.0](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/Working%20copies/CFWOS%20Cleanup%20Suite%201.1.user.js)
+    - [CFWOS AWOS Core 4.1](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/Working%20copies/CFWOS%20AWOS%20Core%204.1.user.js)
+    - [CFWOS AWOS Layout Enhancer 2.0](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/Working%20copies/CFWOS%20AWOS%20Layout%20Enhancer%202.0.user.js)
+    - [CFWOS AWOS Logger Utility](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/Working%20copies/CFWOS%20AWOS%20Logger%20Utility.user.js)
+    - [AWOS Floating Panel 3.5.1 (CLD Detail styling)](https://github.com/Weedman4201985/AWOS-Scripts/blob/main/Working%20copies/AWOS%20Floating%20Panel%203.5.1%20(CLD%20Detail%20styling).user.js)
 
 2. Open the Violentmonkey/MeddleMonkey dashboard.
 3. Drag each downloaded script into the dashboard window.
