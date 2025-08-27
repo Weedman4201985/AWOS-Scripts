@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         CFWOS AWOS Core 4.1(timepopup)
-// @namespace    chris.awos
 // @version      4.1
 // @description  Layout cleanup, refresh toggle, script stripping, integrated logging
+// @author       Chris
 // @match        https://met.forces.gc.ca/english/airops/AWOS/*
 // @match        http://localhost/english/AWOS/*
 // @grant        none
@@ -203,7 +203,7 @@
         });
       }, 1000);
     })();
-    function injectResetFloaterButton() {
+     function injectResetFloaterButton() {
       const refreshBtn = document.querySelector('button, input[type="button"], a[href*="refresh"]');
       if (!refreshBtn || !refreshBtn.parentElement) return;
 
@@ -314,7 +314,8 @@
       const elements = Array.from(document.querySelectorAll('[onmouseover]'));
       Logger.log(`[findAllMouseoverElements] Found ${elements.length} elements with onmouseover`);
       return elements;
-    }
+    }    
+
     function interceptMouseoverPopups() {
         const elements = findAllMouseoverElements();
 
@@ -322,19 +323,72 @@
             const originalHandler = el.getAttribute('onmouseover');
             el.removeAttribute('onmouseover');
 
-            el.addEventListener('mouseenter', () => {
-                Logger.log(`[interceptMouseoverPopups] Mouseover intercepted on element #${index}`);
-                showTooltip(el, originalHandler);
-            });
+            let tooltip = null;
+            let showTimer = null;
+            let hideTimer = null;
+
+            const handleMouseMove = (e) => {
+                if (tooltip) {
+                    const mouseX = e.clientX + window.scrollX;
+                    const mouseY = e.clientY + window.scrollY;
+                    tooltip.style.top = `${mouseY + 12}px`;
+                    tooltip.style.left = `${mouseX + 12}px`;
+                }
+            };
+
+            const showTooltip = (e) => {
+                Logger.log(`[interceptMouseoverPopups] Pointer entered element #${index}`);
+                clearTimeout(hideTimer);
+
+                if (tooltip) {
+                    tooltip.remove();
+                    tooltip = null;
+                    document.removeEventListener('mousemove', handleMouseMove);
+                }
+
+                showTimer = setTimeout(() => {
+                    tooltip = createTooltip(el);
+                    document.body.appendChild(tooltip);
+                    document.addEventListener('mousemove', handleMouseMove);
+                }, 100);
+            };
+
+            const hideTooltip = () => {
+                clearTimeout(showTimer);
+
+                if (tooltip) {
+                    hideTimer = setTimeout(() => {
+                        tooltip.remove();
+                        tooltip = null;
+                        document.removeEventListener('mousemove', handleMouseMove);
+                    }, 2000);
+                }
+            };
+
+            el.addEventListener('pointerenter', showTooltip);
+            el.addEventListener('pointerleave', hideTooltip);
         });
     }
-    function showTooltip(el) {
+
+
+    function createTooltip(el) {
         const epoch = parseInt(el.dataset.epochvalue, 10);
         const offset = parseInt(el.dataset.tzoffset, 10) * 60; // minutes to seconds
-        const localTime = new Date((epoch + offset) * 1000).toLocaleString();
+        const adjustedTime = new Date((epoch + offset) * 1000);
+
+        const estTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        }).format(adjustedTime);
 
         const tooltip = document.createElement('div');
-        tooltip.textContent = `Local Time: ${localTime}`;
+        tooltip.textContent = `EST Time: ${estTime}`;
         tooltip.style.position = 'absolute';
         tooltip.style.background = '#222';
         tooltip.style.color = '#fff';
@@ -344,14 +398,9 @@
         tooltip.style.pointerEvents = 'none';
         tooltip.style.zIndex = '9999';
 
-        document.body.appendChild(tooltip);
+        return tooltip;
+    }
 
-        const rect = el.getBoundingClientRect();
-        tooltip.style.top = `${rect.bottom + window.scrollY + 8}px`;
-        tooltip.style.left = `${rect.left + window.scrollX}px`;
-
-        setTimeout(() => tooltip.remove(), 1500);
-    };
 
     function cleanupLegacy() {
 
@@ -380,14 +429,6 @@
                     el.remove();
                 });
             });
-
-            /*const styledElements = Array.from(document.querySelectorAll('[style]'));
-            Logger.group(`Removed inline styles from ${styledElements.length} element(s)`, () => {
-                styledElements.forEach((el, i) => {
-                    Logger.log(`Styled Element ${i + 1}`, el);
-                    el.removeAttribute('style');
-                });
-            });*/
 
             Logger.log('Legacy cleanup complete ✅');
 
