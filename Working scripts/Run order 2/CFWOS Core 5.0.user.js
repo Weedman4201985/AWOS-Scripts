@@ -310,6 +310,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         injectResetFloaterButton();
+        interceptMouseoverPopups();
         document.dispatchEvent(new Event("CoreReady"));
         Logger.log('🧭 DOM fully loaded');
 
