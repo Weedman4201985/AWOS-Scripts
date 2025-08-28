@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         CFWOS AWOS Core 6.0
-// @version      6.0d
-// @description  Combined best of 4.1 with 5.0
+// @name         CFWOS AWOS Core 6.1
+// @version      6.1d
+// @description  Debugging update
 // @author       Chris
 // @match        https://met.forces.gc.ca/english/airops/AWOS/*
 // @match        http://localhost/english/AWOS/*
@@ -93,129 +93,168 @@
 
 
     (function earlyPatch() {
+
         (function setupAutoRefreshToggle() {
-        const STORAGE_KEY = 'awosAutoRefreshEnabled';
-        const REFRESH_INTERVAL = 60; // seconds
-        let refreshEnabled = localStorage.getItem(STORAGE_KEY) !== 'false'; // default to true
-        let secondsLeft = REFRESH_INTERVAL;
+            const STORAGE_KEY = 'awosAutoRefreshEnabled';
+            const REFRESH_INTERVAL = 60; // seconds
+            let refreshEnabled = localStorage.getItem(STORAGE_KEY) !== 'false'; // default to true
+            let secondsLeft = REFRESH_INTERVAL;
 
-        const waitForBody = setInterval(() => {
-            if (document.body) {
-                clearInterval(waitForBody);
+            const waitForBody = setInterval(() => {
+                if (document.body) {
+                    clearInterval(waitForBody);
 
-                Logger.log(`[AWOS Core] Auto-refresh module initialized. Current state: ${refreshEnabled ? 'ON' : 'OFF'}`);
+                    Logger.log(`[AWOS Core] Auto-refresh module initialized. Current state: ${refreshEnabled ? 'ON' : 'OFF'}`);
 
-                // Create top bar container if it doesn't exist
-                let topBar = document.querySelector('#awos-top-bar');
-                if (!topBar) {
-                    topBar = document.createElement('div');
-                    topBar.id = 'awos-top-bar';
-                    topBar.style.cssText = `
-                        position: sticky;
-                        top: 0;
-                        z-index: 1000;
-                        display: flex;
-                        justify-content: flex-end;
-                        align-items: center;
-                        padding: 10px;
-                        background: #f8f8f8;
-                        border-bottom: 1px solid #ccc;
+                    // Create top bar container if it doesn't exist
+                    let topBar = document.querySelector('#awos-top-bar');
+                    if (!topBar) {
+                        topBar = document.createElement('div');
+                        topBar.id = 'awos-top-bar';
+                        topBar.style.cssText = `
+                            position: sticky;
+                            top: 0;
+                            z-index: 1000;
+                            display: flex;
+                            justify-content: flex-end;
+                            align-items: center;
+                            padding: 10px;
+                            background: #f8f8f8;
+                            border-bottom: 1px solid #ccc;
+                        `;
+                        document.body.prepend(topBar);
+                    }
+
+                    function waitForTopBar(callback) {
+                        const interval = setInterval(() => {
+                            const topBar = document.getElementById('awos-top-bar');
+                            if (topBar) {
+                                clearInterval(interval);
+                                callback(topBar);
+                            }
+                        }, 50);
+                    }
+
+                    // Create toggle button
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.style.cssText = `
+                        padding: 8px 12px;
+                        background: ${refreshEnabled ? '#0078D4' : '#555'};
+                        color: #fff;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-family: "Segoe UI", sans-serif;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                        margin-left: auto;
                     `;
-                    document.body.prepend(topBar);
-                }
 
-                // Create toggle button
-                const toggleBtn = document.createElement('button');
-                toggleBtn.style.cssText = `
-                    padding: 8px 12px;
-                    background: ${refreshEnabled ? '#0078D4' : '#555'};
-                    color: #fff;
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-family: "Segoe UI", sans-serif;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                    margin-left: auto;
-                `;
+                    function updateButtonLabel() {
+                        toggleBtn.textContent = `⏳ Auto-Refresh: ${refreshEnabled ? 'ON' : 'OFF'} (${secondsLeft}s)`;
+}
 
-                function updateButtonLabel() {
-                    toggleBtn.textContent = `⏳ Auto-Refresh: ${refreshEnabled ? 'ON' : 'OFF'} (${secondsLeft}s)`;
-                }
+                    waitForTopBar((topBar) => {
+                        const debugBtn = document.createElement('button');
+                        debugBtn.textContent = '🧪 Debug';
+                        debugBtn.style.cssText = `
+                            margin-left: 10px;
+                            padding: 6px 10px;
+                            background: #444;
+                            color: #0f0;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-family: monospace;
+                        `;
+                        debugBtn.addEventListener('click', () => {
+                            if (typeof window.openDebugPanel === 'function') {
+                                window.openDebugPanel();
+                            } else {
+                                console.warn('[AWOS Core] openDebugPanel() is not available.');
+                            }
+                        });
+                        console.log('[AWOS Core] Waiting for top bar to inject debug button...');
 
-                toggleBtn.addEventListener('click', () => {
-                    const wasDisabled = !refreshEnabled;
-                    refreshEnabled = !refreshEnabled;
-                    localStorage.setItem(STORAGE_KEY, refreshEnabled);
-                    toggleBtn.style.background = refreshEnabled ? '#0078D4' : '#555';
-                    Logger.log(`[AWOS Core] Auto-refresh ${refreshEnabled ? 'enabled' : 'disabled'} by user`);
-                    updateButtonLabel();
+                        topBar.appendChild(debugBtn);
 
-                    if (wasDisabled && refreshEnabled) {
-                        Logger.log(`[AWOS Core] Auto-refresh re-enabled — refreshing immediately`);
-                        forcePageReload();
+                        console.log('[AWOS Core] Debug button injected into top bar.');
+                    });
 
-                    }
-                });
+                    toggleBtn.addEventListener('click', () => {
+                        const wasDisabled = !refreshEnabled;
+                        refreshEnabled = !refreshEnabled;
+                        localStorage.setItem(STORAGE_KEY, refreshEnabled);
+                        toggleBtn.style.background = refreshEnabled ? '#0078D4' : '#555';
+                        Logger.log(`[AWOS Core] Auto-refresh ${refreshEnabled ? 'enabled' : 'disabled'} by user`);
+                        updateButtonLabel();
 
-                topBar.appendChild(toggleBtn);
-                updateButtonLabel();
-
-                // Countdown loop
-                setInterval(() => {
-                    if (refreshEnabled) {
-                        secondsLeft--;
-                        if (secondsLeft <= 0) {
-                            Logger.log(`[AWOS Core] Auto-refresh triggered at ${new Date().toLocaleTimeString()}`);
+                        if (wasDisabled && refreshEnabled) {
+                            Logger.log(`[AWOS Core] Auto-refresh re-enabled — refreshing immediately`);
                             forcePageReload();
+
                         }
-                    } else {
-                        secondsLeft = REFRESH_INTERVAL; // reset if disabled
-                    }
+});
+                    topBar.appendChild(toggleBtn);
+
                     updateButtonLabel();
-                }, 1000); // every second
-            }
-        }, 10);
-            // At the very end of setupAutoRefreshToggle() closure
-      window.getAwosRefreshStatus = function () {
-        return {
-          enabled: refreshEnabled,
-          secondsLeft: secondsLeft
-        };
 
-      };
+                    // Countdown loop
+                    setInterval(() => {
+                        if (refreshEnabled) {
+                            secondsLeft--;
+                            if (secondsLeft <= 0) {
+                                Logger.log(`[AWOS Core] Auto-refresh triggered at ${new Date().toLocaleTimeString()}`);
+                                forcePageReload();
+                            }
+                        } else {
+                            secondsLeft = REFRESH_INTERVAL; // reset if disabled
+                        }
+                        updateButtonLabel();
+                    }, 1000); // every second
+                }
+            }, 10);
+                // At the very end of setupAutoRefreshToggle() closure
+          window.getAwosRefreshStatus = function () {
+            return {
+              enabled: refreshEnabled,
+              secondsLeft: secondsLeft
+            };
 
-      // Allow modal to trigger parent refresh
-      window.triggerAwosRefresh = () => {
-        forcePageReload();
-      };
+          };
 
-      // Live updates to any listeners
-      const bc = new BroadcastChannel('awos-refresh-sync');
-      setInterval(() => {
-        bc.postMessage({
-          enabled: refreshEnabled,
-          secondsLeft
-        });
-      }, 1000);
-    })();
+          // Allow modal to trigger parent refresh
+          window.triggerAwosRefresh = () => {
+            forcePageReload();
+          };
+
+          // Live updates to any listeners
+          const bc = new BroadcastChannel('awos-refresh-sync');
+          setInterval(() => {
+            bc.postMessage({
+              enabled: refreshEnabled,
+              secondsLeft
+            });
+          }, 1000);
+      })();
 
         (function waitForHeadAndInjectFavicon() {
-        const inject = () => {
-            const link = document.createElement('link');
-            link.rel = 'icon';
-            link.type = 'image/png';
-            link.href = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgZkKXnUAAAAASUVORK5CYII=';
-            document.head.appendChild(link);
-            Logger.log('[AWOS Core] Dummy favicon injected safely');
-        };
-        const interval = setInterval(() => {
-            if (document.head) {
-                clearInterval(interval);
-                inject();
-            }
-        }, 10);
-    })();
+            const inject = () => {
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/png';
+                link.href = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgZkKXnUAAAAASUVORK5CYII=';
+                document.head.appendChild(link);
+                Logger.log('[AWOS Core] Dummy favicon injected safely');
+            };
+            const interval = setInterval(() => {
+                if (document.head) {
+                    clearInterval(interval);
+                    inject();
+                }
+            }, 10);
+        })();
 
         function disableAwosAutoRefresh() {
           document.querySelectorAll('meta[http-equiv="refresh"]').forEach(m => m.remove());
@@ -622,7 +661,6 @@
             }
         }, 50);
     }
-
 
     (function Core60() {
 
